@@ -23,10 +23,13 @@ class Messages extends StatelessWidget {
           itemCount: chatDocs.length,
           itemBuilder: (BuildContext x,int index){
               final  key=ValueKey(chatDocs[index].id);
+              final userId=chatDocs[index]['userId'];
+              // print(userId);
+              // FirebaseFirestore.instance.collection('users').doc(userId).get().then((value) => print(value.data()));
               if(chatDocs[index]['userId']==_loggedInUserId)
-              return MessageBubble(key: key,message:chatDocs[index]['text'],bubbleAlignment: Alignment.centerRight,bubbleColor: Color.fromRGBO(225, 255, 255, 1.0),);
+              return MessageBubble(key: key,userImage:chatDocs[index]['userImageUrl'] ,userName:chatDocs[index]['userName'],message:chatDocs[index]['text'],bubbleAlignment: Alignment.centerRight,bubbleColor: Color.fromRGBO(225, 255, 255, 1.0),);
               else
-              return MessageBubble(key:key,message:chatDocs[index]['text'],bubbleAlignment: Alignment.centerLeft,bubbleColor: Color.fromRGBO(225, 255, 199, 1.0),);
+              return MessageBubble(key:key,userImage:chatDocs[index]['userImageUrl'],userName:chatDocs[index]['userName'],message:chatDocs[index]['text'],bubbleAlignment: Alignment.centerLeft,bubbleColor: Color.fromRGBO(225, 255, 199, 1.0),);
           },
         );
     },

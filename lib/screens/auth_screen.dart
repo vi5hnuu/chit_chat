@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class AuthScreen extends StatefulWidget {
   static const routeName = '/authScreen';
@@ -21,7 +22,7 @@ class _AuthScreenState extends State<AuthScreen> {
       {required String email,
       required String pass,
       String? username,
-      required bool isLogin}) async {
+      required bool isLogin,File? pickedImage}) async {
     UserCredential userCredential;
     try{
       setState(() {
@@ -31,9 +32,14 @@ class _AuthScreenState extends State<AuthScreen> {
         userCredential=await _auth.signInWithEmailAndPassword(email: email, password: pass);
       }else{
         userCredential=await _auth.createUserWithEmailAndPassword(email: email, password: pass);
+        final ref=FirebaseStorage.instance.ref().child('user_images').child('${userCredential.user!.uid}.jpg');
+        await ref.putFile(pickedImage!).whenComplete(()async{
+          final imageUrl=await ref.getDownloadURL();
+          FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set(
+              {'userName':username,'email':email,'image_url':imageUrl});
+        });
         //store username
-        FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set(
-            {'userName':username,'email':email});
+
       }
 
     }on PlatformException catch(err){
@@ -49,6 +55,8 @@ class _AuthScreenState extends State<AuthScreen> {
         content: Text(err.toString()),
       ),);
     }finally{
+      if(!mounted)
+        return;
       setState(() {
         _isLoading=false;
       });
@@ -64,7 +72,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 image: AssetImage(
                   'assets/images/auth_background.png',
                 ),
-                fit: BoxFit.contain)),
+                fit: BoxFit.contain),),
         child: AuthForm(submitFn: _submitAuthForm,isLoading:_isLoading),
       ),
     );
